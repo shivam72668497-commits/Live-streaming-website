@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>ShivEarn Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --sidebar-width: 250px;
+      --header-height: 60px;
+      --transition: 0.2s ease;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: #1e293b;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 100;
+      box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+    }
+    .sidebar-logo {
+      padding: 22px 20px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.3px;
+    }
+    .sidebar-logo i { color: #fbbf24; font-size: 1.5rem; }
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 0;
+      overflow-y: auto;
+    }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 24px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: var(--transition);
+      border-left: 3px solid transparent;
+    }
+    .sidebar-nav a:hover, .sidebar-nav a.active {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-left-color: #fbbf24;
+    }
+    .sidebar-nav a i { width: 20px; text-align: center; }
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .logout-btn {
+      background: rgba(239,68,68,0.2);
+      border: 1px solid rgba(239,68,68,0.4);
+      color: #fecaca;
+      padding: 10px 166px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 8px;
+      transition: var(--transition);
+    }
+    .logout-btn:hover { background: rgba(239,68,68,0.4); }
+    /* Main Content */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 20px;
+      min-height: 100vh;
+      width: calc(100% - var(--sidebar-width));
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: #eef2ff;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+    .stat-info h3 { font-size: 1.4rem; font-weight: 700; }
+    .stat-info p { font-size: 0.8rem; color: var(--text-light); }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition);
+      font-size: 0.85rem;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-google { background: #fff; color: #1e293b; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .btn-google:hover { background: #f8fafc; }
+    .btn-accent { background: var(--accent); color: #1e293b; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+    .btn:active { transform: scale(0.96); }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #f8fafc; font-weight: 600; color: var(--text-light); font-size: 0.8rem; text-transform: uppercase; }
+    tr:hover { background: #f8fafc; }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-approved { background: #d1fae5; color: #065f46; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+    .modal-overlay {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.6);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s;
+    }
+    .modal {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: bounceIn 0.3s;
+    }
+    .modal h3 { margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.85rem; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      background: #f8fafc;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+    }
+    .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 600;
+      padding: 12px 24px;
+      border-radius: 25px;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      animation: bounceIn 0.3s;
+    }
+    .toast.success { background: #10b981; }
+    .toast.error { background: #ef4444; }
+    .toast.info { background: #3b82f6; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes bounceIn { 0%{transform:scale(0.6);opacity:0;} 60%{transform:scale(1.05);} 100%{transform:scale(1);opacity:1;} }
+    .section { display: none; }
+    .section.active { display: block; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; width: 100%; }
+      .mobile-toggle {
+        display: block;
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 200;
+        background: #1e293b;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+    }
+    @media (min-width: 769px) { .mobile-toggle { display: none; } }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <i class="fas fa-shield-alt"></i> Admin Panel
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" data-section="dashboard" class="active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="#" data-section="users"><i class="fas fa-users"></i> Users</a>
+      <a href="#" data-section="tasks"><i class="fas fa-tasks"></i> Tasks</a>
+      <a href="#" data-section="announcements"><i class="fas fa-bullhorn"></i> Announcements</a>
+      <a href="#" data-section="withdrawals"><i class="fas fa-wallet"></i> Withdrawals</a>
+      <a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="adminInfo">Admin</div>
+      <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content" id="mainContent">
+    <div id="loginScreen" class="section active" style="display:flex; align-items:center; justify-content:center; min-height:80vh;">
+      <div class="card" style="width:100%; max-width:400px; text-align:center;">
+        <h2 style="margin-bottom:20px;">🔐 Admin Login</h2>
+        <form id="loginForm">
+          <div class="form-group"><input type="email" id="loginEmail" placeholder="Admin Email" required></div>
+          <div class="form-group"><input type="password" id="loginPassword" placeholder="Password" required></div>
+          <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom: 12px;">Login with Email</button>
+        </form>
+        
+        <div style="margin: 15px 0; color: var(--text-light); font-size: 0.9rem; position: relative; text-align: center;">
+          <span style="background: #fff; padding: 0 10px; position: relative; z-index: 1;">OR</span>
+          <hr style="position: absolute; top: 50%; left: 0; right: 0; border: none; border-top: 1px solid var(--border); z-index: 0;">
+        </div>
+
+        <button id="googleLoginBtn" class="btn btn-google" style="width:100%;">
+          <img src="https://cdnjs.cloudflare.com/ajax/libs/logos/1.0.0/google-icon.svg" alt="Google" style="width:16px; height:16px; margin-right:8px;">
+          Sign in with Google
+        </button>
+
+        <p id="loginError" style="color:var(--danger); margin-top:12px; display:none;"></p>
+      </div>
+    </div>
+
+    <div id="dashboardSection" class="section">
+      <div class="page-header"><h1>📊 Dashboard Overview</h1></div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div id="usersSection" class="section">
+      <div class="page-header"><h1>👥 Users Management</h1></div>
+      <div class="table-container"><table id="usersTable"><thead><tr><th>Name</th><th>Email</th><th>Coins</th><th>Tasks</th><th>Referrals</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <div id="tasksSection" class="section">
+      <div class="page-header">
+        <h1>📋 Tasks</h1>
+        <button class="btn btn-primary" id="addTaskBtn"><i class="fas fa-plus"></i> New Task</button>
+      </div>
+      <div class="table-container"><table id="tasksTable"><thead><tr><th>Title</th><th>Reward</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <div id="announcementsSection" class="section">
+      <div class="page-header">
+        <h1>📢 Announcements</h1>
+        <button class="btn btn-primary" id="addAnnouncementBtn"><i class="fas fa-plus"></i> New</button>
+      </div>
+      <div class="table-container"><table id="announcementsTable"><thead><tr><th>Title</th><th>Message</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <div id="withdrawalsSection" class="section">
+      <div class="page-header"><h1>💸 Withdrawal Requests</h1></div>
+      <div class="table-container"><table id="withdrawalsTable"><thead><tr><th>User</th><th>Amount</th><th>Coins Used</th><th>UPI</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <div id="settingsSection" class="section">
+      <div class="page-header"><h1>⚙️ App Settings</h1></div>
+      <div class="card" id="settingsFormContainer"></div>
+    </div>
+  </main>
+
+  <div id="modalContainer"></div>
+  <div id="toastContainer"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      // Config with your verified Realtime Database URL injected
+      const firebaseConfig = {
+        apiKey: "AIzaSyDYdTJdXbxZ4bUGW-wO1BRaszEUb2Q_BAg",
+        authDomain: "shivearnapp.firebaseapp.com",
+        databaseURL: "https://shivearnapp-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "shivearnapp",
+        storageBucket: "shivearnapp.firebasestorage.app",
+        messagingSenderId: "467728812929",
+        appId: "1:467728812929:web:a73f12827309d9c09d7680"
+      };
+      
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.database();
+      const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+      let currentUser = null;
+      let isAdmin = false;
+      let allUsers = {};
+      let allTasks = {};
+      let allAnnouncements = {};
+      let allWithdrawals = {};
+      let settingsData = {};
+
+      const $ = (s) => document.querySelector(s);
+      const $$ = (s) => document.querySelectorAll(s);
+
+      function showToast(msg, type='info') {
+        const container = $('#toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = msg;
+        container.appendChild(toast);
+        setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(()=>toast.remove(),300); }, 3000);
+      }
+
+      function showModal(title, contentHtml, onSave) {
+        const container = $('#modalContainer');
+        container.innerHTML = `
+          <div class="modal-overlay" id="modalOverlay">
+            <div class="modal">
+              <h3>${title}</h3>
+              <div id="modalBody">${contentHtml}</div>
+              <div class="flex-row" style="justify-content:flex-end; margin-top:20px;">
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="modalSaveBtn">Save</button>
+              </div>
+            </div>
+          </div>`;
+        $('#modalOverlay').addEventListener('click', (e) => { if(e.target.id==='modalOverlay') closeModal(); });
+        $('#modalSaveBtn').addEventListener('click', onSave);
+      }
+      window.closeModal = () => { $('#modalContainer').innerHTML = ''; };
+
+      function navigateTo(sectionId) {
+        $$('.section').forEach(s => s.classList.remove('active'));
+        const target = $(`#${sectionId}Section`);
+        if(target) target.classList.add('active');
+        $$('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`.sidebar-nav a[data-section="${sectionId}"]`);
+        if(link) link.classList.add('active');
+        if(sectionId==='dashboard') refreshDashboard();
+        else if(sectionId==='users') refreshUsers();
+        else if(sectionId==='tasks') refreshTasks();
+        else if(sectionId==='announcements') refreshAnnouncements();
+        else if(sectionId==='withdrawals') refreshWithdrawals();
+        else if(sectionId==='settings') refreshSettings();
+        $('#sidebar').classList.remove('open');
+      }
+
+      // Handle system login and structural checks
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          currentUser = user;
+          try {
+            const adminSnap = await db.ref('admins/' + user.uid).once('value');
+            if (adminSnap.exists() && adminSnap.val() === true) {
+              isAdmin = true;
+              $('#loginScreen').style.display = 'none';
+              $('#loginScreen').classList.remove('active');
+              document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+              $('#dashboardSection').classList.add('active');
+              $('#adminInfo').textContent = user.email || user.displayName || 'Admin';
+              setupRealtimeListeners();
+              navigateTo('dashboard');
+            } else {
+              isAdmin = false;
+              showToast('Access denied. UID not authorized in admins node.', 'error');
+              auth.signOut();
+            }
+          } catch (error) {
+            showToast('Database error during verification: ' + error.message, 'error');
+            auth.signOut();
+          }
+        } else {
+          currentUser = null;
+          isAdmin = false;
+          $('#loginScreen').style.display = 'flex';
+          $('#loginScreen').classList.add('active');
+          document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        }
+      });
+
+      // Email/Password login handler
+      document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        $('#loginError').style.display = 'none';
+        const email = $('#loginEmail').value.trim();
+        const pass = $('#loginPassword').value.trim();
+        auth.signInWithEmailAndPassword(email, pass).catch(err => {
+          $('#loginError').style.display = 'block';
+          $('#loginError').textContent = err.message;
+        });
+      });
+
+      // Google OAuth login handler
+      document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        $('#loginError').style.display = 'none';
+        auth.signInWithPopup(googleProvider).catch(err => {
+          $('#loginError').style.display = 'block';
+          $('#loginError').textContent = err.message;
+        });
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+
+      document.getElementById('mobileToggle').addEventListener('click', () => {
+        $('#sidebar').classList.toggle('open');
+      });
+
+      $$('.sidebar-nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const section = link.dataset.section;
+          navigateTo(section);
+        });
+      });
+
+      function setupRealtimeListeners() {
+        db.ref('users').on('value', snap => { allUsers = snap.val() || {}; if($('#usersSection').classList.contains('active')) refreshUsers(); });
+        db.ref('tasks').on('value', snap => { allTasks = snap.val() || {}; if($('#tasksSection').classList.contains('active')) refreshTasks(); });
+        db.ref('announcements').on('value', snap => { allAnnouncements = snap.val() || {}; if($('#announcementsSection').classList.contains('active')) refreshAnnouncements(); });
+        db.ref('withdrawals').on('value', snap => { allWithdrawals = snap.val() || {}; if($('#withdrawalsSection').classList.contains('active')) refreshWithdrawals(); });
+        db.ref('settings').on('value', snap => { settingsData = snap.val() || {}; if($('#settingsSection').classList.contains('active')) refreshSettings(); });
+      }
+
+      function refreshDashboard() {
+        const totalUsers = Object.keys(allUsers).length;
+        const totalTasks = Object.values(allTasks).filter(t => t.status === true).length;
+        const pendingWithdrawals = Object.values(allWithdrawals).filter(w => w.status === 'pending').length;
+        const totalCoins = Object.values(allUsers).reduce((sum, u) => sum + (u.wallet?.coins || 0), 0);
+        $('#statsGrid').innerHTML = `
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3>${totalUsers}</h3><p>Total Users</p></div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-tasks"></i></div><div class="stat-info"><h3>${totalTasks}</h3><p>Active Tasks</p></div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><h3>${pendingWithdrawals}</h3><p>Pending Withdrawals</p></div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-info"><h3>${totalCoins}</h3><p>Total Coins</p></div></div>`;
+      }
+
+      function refreshUsers() {
+        const tbody = $('#usersTable tbody');
+        tbody.innerHTML = '';
+        Object.entries(allUsers).forEach(([uid, user]) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${user.profile?.name || 'N/A'}</td>
+            <td>${user.profile?.email || ''}</td>
+            <td>🪙 ${user.wallet?.coins || 0}</td>
+            <td>${user.stats?.completedTasks || 0}</td>
+            <td>${user.stats?.referrals || 0}</td>
+            <td>
+              <button class="btn btn-outline btn-sm edit-user" data-uid="${uid}"><i class="fas fa-edit"></i></button>
+            </td>`;
+          tbody.appendChild(row);
+        });
+        document.querySelectorAll('.edit-user').forEach(btn => btn.addEventListener('click', (e) => {
+          const uid = e.currentTarget.dataset.uid;
+          openEditUserModal(uid);
+        }));
+      }
+
+      function openEditUserModal(uid) {
+        const user = allUsers[uid];
+        if(!user) return;
+        const html = `
+          <div class="form-group"><label>Name</label><input id="editUserName" value="${user.profile?.name || ''}"></div>
+          <div class="form-group"><label>Email</label><input id="editUserEmail" value="${user.profile?.email || ''}" disabled></div>
+          <div class="form-group"><label>Coins</label><input type="number" id="editUserCoins" value="${user.wallet?.coins || 0}"></div>
+          <div class="form-group"><label>Total Earned</label><input type="number" id="editUserEarned" value="${user.wallet?.totalEarned || 0}"></div>
+          <div class="form-group"><label>Withdrawn</label><input type="number" id="editUserWithdrawn" value="${user.wallet?.withdrawn || 0}"></div>
+          <div class="form-group"><label>Today Tasks</label><input type="number" id="editTodayTasks" value="${user.stats?.todayTasks || 0}"></div>
+          <div class="form-group"><label>Today Coins</label><input type="number" id="editTodayCoins" value="${user.stats?.todayCoins || 0}"></div>
+          <div class="form-group"><label>Referrals</label><input type="number" id="editReferrals" value="${user.stats?.referrals || 0}"></div>`;
+        showModal('Edit User', html, async () => {
+          const updates = {
+            [`users/${uid}/wallet/coins`]: parseInt($('#editUserCoins').value) || 0,
+            [`users/${uid}/wallet/totalEarned`]: parseInt($('#editUserEarned').value) || 0,
+            [`users/${uid}/wallet/withdrawn`]: parseInt($('#editUserWithdrawn').value) || 0,
+            [`users/${uid}/stats/todayTasks`]: parseInt($('#editTodayTasks').value) || 0,
+            [`users/${uid}/stats/todayCoins`]: parseInt($('#editTodayCoins').value) || 0,
+            [`users/${uid}/stats/referrals`]: parseInt($('#editReferrals').value) || 0,
+            [`users/${uid}/profile/name`]: $('#editUserName').value.trim()
+          };
+          try {
+            await db.ref().update(updates);
+            showToast('User updated', 'success');
+            closeModal();
+          } catch(err) { showToast('Error: '+err.message, 'error'); }
+        });
+      }
+
+      function refreshTasks() {
+        const tbody = $('#tasksTable tbody');
+        tbody.innerHTML = '';
+        Object.entries(allTasks).forEach(([taskId, task]) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${task.title || 'Untitled'}</td>
+            <td>🪙 ${task.reward || 0}</td>
+            <td>${task.type || 'youtube'}</td>
+            <td><span class="badge ${task.status ? 'badge-approved' : 'badge-rejected'}">${task.status ? 'Active' : 'Inactive'}</span></td>
+            <td>
+              <button class="btn btn-outline btn-sm edit-task" data-taskid="${taskId}"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-danger btn-sm delete-task" data-taskid="${taskId}"><i class="fas fa-trash"></i></button>
+            </td>`;
+          tbody.appendChild(row);
+        });
+        document.querySelectorAll('.edit-task').forEach(b => b.addEventListener('click', e => openTaskModal(e.currentTarget.dataset.taskid)));
+        document.querySelectorAll('.delete-task').forEach(b => b.addEventListener('click', e => deleteTask(e.currentTarget.dataset.taskid)));
+      }
+
+      function openTaskModal(taskId = null) {
+        const task = taskId ? allTasks[taskId] : { title:'', description:'', reward:1, type:'youtube', url:'', status:true, cooldown:{enabled:true,seconds:60}, rewardAd:{enabled:true,showAfterCorrectAnswer:true,type:'rewarded'}, verification:{enabled:true,mode:'mcq',question:'',correctAnswer:'c',options:{a:'',b:'',c:'',d:''}} };
+        const html = `
+          <div class="form-group"><label>Title</label><input id="taskTitle" value="${task.title || ''}"></div>
+          <div class="form-group"><label>Description</label><textarea id="taskDesc">${task.description || ''}</textarea></div>
+          <div class="form-group"><label>YouTube URL</label><input id="taskUrl" value="${task.url || ''}"></div>
+          <div class="form-group"><label>Reward (coins)</label><input type="number" id="taskReward" value="${task.reward || 1}"></div>
+          <div class="form-group"><label>Type</label><select id="taskType"><option value="youtube" ${task.type==='youtube'?'selected':''}>YouTube</option></select></div>
+          <div class="form-group"><label>Status</label><select id="taskStatus"><option value="1" ${task.status?'selected':''}>Active</option><option value="0" ${!task.status?'selected':''}>Inactive</option></select></div>
+          <div class="form-group"><label>Cooldown (seconds)</label><input type="number" id="taskCooldown" value="${task.cooldown?.seconds || 60}"></div>
+          <div class="form-group"><label>MCQ Question</label><input id="mcqQuestion" value="${task.verification?.question || ''}"></div>
+          <div class="form-group"><label>Correct Answer (a/b/c/d)</label><input id="mcqCorrect" value="${task.verification?.correctAnswer || 'c'}"></div>
+          <div class="flex-row">
+            <div class="form-group" style="flex:1"><label>Option A</label><input id="optA" value="${task.verification?.options?.a || ''}"></div>
+            <div class="form-group" style="flex:1"><label>Option B</label><input id="optB" value="${task.verification?.options?.b || ''}"></div>
+          </div>
+          <div class="flex-row">
+            <div class="form-group" style="flex:1"><label>Option C</label><input id="optC" value="${task.verification?.options?.c || ''}"></div>
+            <div class="form-group" style="flex:1"><label>Option D</label><input id="optD" value="${task.verification?.options?.d || ''}"></div>
+          </div>`;
+        showModal(taskId ? 'Edit Task' : 'New Task', html, async () => {
+          const newTask = {
+            title: $('#taskTitle').value,
+            description: $('#taskDesc').value,
+            url: $('#taskUrl').value,
+            reward: parseInt($('#taskReward').value) || 1,
+            type: $('#taskType').value,
+            status: $('#taskStatus').value === '1',
+            cooldown: { enabled: true, seconds: parseInt($('#taskCooldown').value) || 60 },
+            rewardAd: { enabled: true, showAfterCorrectAnswer: true, type: 'rewarded' },
+            verification: {
+              enabled: true,
+              mode: 'mcq',
+              question: $('#mcqQuestion').value,
+              correctAnswer: $('#mcqCorrect').value,
+              options: { a: $('#optA').value, b: $('#optB').value, c: $('#optC').value, d: $('#optD').value }
+            },
+            createdAt: task.createdAt || Math.floor(Date.now()/1000)
+          };
+          try {
+            if(taskId) await db.ref('tasks/'+taskId).update(newTask);
+            else await db.ref('tasks').push(newTask);
+            showToast('Task saved', 'success');
+            closeModal();
+          } catch(err) { showToast('Error: '+err.message, 'error'); }
+        });
+      }
+
+      function deleteTask(taskId) {
+        if(confirm('Delete this task?')) {
+          db.ref('tasks/'+taskId).remove().then(() => showToast('Task deleted','success')).catch(e => showToast(e.message,'error'));
+        }
+      }
+      document.getElementById('addTaskBtn').addEventListener('click', () => openTaskModal());
+
+      function refreshAnnouncements() {
+        const tbody = $('#announcementsTable tbody');
+        tbody.innerHTML = '';
+        Object.entries(allAnnouncements).forEach(([id, a]) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${a.title || ''}</td>
+            <td>${a.message || ''}</td>
+            <td><span class="badge ${a.status ? 'badge-approved' : 'badge-rejected'}">${a.status ? 'Active' : 'Inactive'}</span></td>
+            <td>
+              <button class="btn btn-outline btn-sm edit-announce" data-id="${id}"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-danger btn-sm delete-announce" data-id="${id}"><i class="fas fa-trash"></i></button>
+            </td>`;
+          tbody.appendChild(row);
+        });
+        document.querySelectorAll('.edit-announce').forEach(b => b.addEventListener('click', e => openAnnounceModal(e.currentTarget.dataset.id)));
+        document.querySelectorAll('.delete-announce').forEach(b => b.addEventListener('click', e => deleteAnnounce(e.currentTarget.dataset.id)));
+      }
+      function openAnnounceModal(id = null) {
+        const a = id ? allAnnouncements[id] : { title:'', message:'', status:true };
+        const html = `
+          <div class="form-group"><label>Title</label><input id="annTitle" value="${a.title||''}"></div>
+          <div class="form-group"><label>Message</label><textarea id="annMsg">${a.message||''}</textarea></div>
+          <div class="form-group"><label>Status</label><select id="annStatus"><option value="1" ${a.status?'selected':''}>Active</option><option value="0" ${!a.status?'selected':''}>Inactive</option></select></div>`;
+        showModal(id?'Edit Announcement':'New Announcement', html, async () => {
+          const data = { title: $('#annTitle').value, message: $('#annMsg').value, status: $('#annStatus').value==='1', createdAt: a.createdAt || Math.floor(Date.now()/1000) };
+          try {
+            if(id) await db.ref('announcements/'+id).update(data);
+            else await db.ref('announcements').push(data);
+            showToast('Saved','success'); closeModal();
+          } catch(err) { showToast(err.message,'error'); }
+        });
+      }
+      function deleteAnnounce(id) { if(confirm('Delete?')) db.ref('announcements/'+id).remove().then(()=>showToast('Deleted','success')); }
+      document.getElementById('addAnnouncementBtn').addEventListener('click', () => openAnnounceModal());
+
+      function refreshWithdrawals() {
+        const tbody = $('#withdrawalsTable tbody');
+        tbody.innerHTML = '';
+        const entries = Object.entries(allWithdrawals).sort((a,b) => (b[1].createdAt||0)-(a[1].createdAt||0));
+        entries.forEach(([id, w]) => {
+          const row = document.createElement('tr');
+          const user = allUsers[w.uid]?.profile?.name || w.uid;
+          row.innerHTML = `
+            <td>${user}</td>
+            <td>₹${w.amount}</td>
+            <td>${w.coinsUsed}</td>
+            <td>${w.upiId || ''}</td>
+            <td><span class="badge badge-${w.status}">${w.status}</span></td>
+            <td>${new Date((w.createdAt||0)*1000).toLocaleDateString()}</td>
+            <td>
+              ${w.status==='pending' ? `
+                <button class="btn btn-success btn-sm approve-withdraw" data-id="${id}">Approve</button>
+                <button class="btn btn-danger btn-sm reject-withdraw" data-id="${id}">Reject</button>
+              ` : ''}
+            </td>`;
+          tbody.appendChild(row);
+        });
+        document.querySelectorAll('.approve-withdraw').forEach(b => b.addEventListener('click', e => updateWithdrawal(e.currentTarget.dataset.id, 'completed')));
+        document.querySelectorAll('.reject-withdraw').forEach(b => b.addEventListener('click', e => updateWithdrawal(e.currentTarget.dataset.id, 'rejected')));
+      }
+      async function updateWithdrawal(withdrawId, status) {
+        try {
+          await db.ref('withdrawals/'+withdrawId).update({ status, processedAt: Math.floor(Date.now()/1000), adminNote: status==='completed'?'Approved':'Rejected' });
+          showToast(`Withdrawal ${status}`, 'success');
+        } catch(err) { showToast(err.message, 'error'); }
+      }
+
+      function refreshSettings() {
+        const s = settingsData || {};
+        const html = `
+          <div class="form-group"><label>App Status</label><select id="setAppStatus"><option value="1" ${s.appStatus?'selected':''}>Online</option><option value="0" ${!s.appStatus?'selected':''}>Offline</option></select></div>
+          <div class="form-group"><label>Ads Enabled</label><select id="setAdsEnabled"><option value="1" ${s.adsEnabled?'selected':''}>Yes</option><option value="0" ${!s.adsEnabled?'selected':''}>No</option></select></div>
+          <div class="flex-row">
+            <div class="form-group" style="flex:1"><label>Coins per Rupee</label><input type="number" id="setCoinCoins" value="${s.coinValue?.coins || 50}"></div>
+            <div class="form-group" style="flex:1"><label>Rupees</label><input type="number" id="setCoinRupees" value="${s.coinValue?.rupees || 1}"></div>
+          </div>
+          <div class="form-group"><label>Daily Coin Limit</label><input type="number" id="setDailyCoinLimit" value="${s.dailyCoinLimit || 50}"></div>
+          <div class="form-group"><label>Daily Task Limit</label><input type="number" id="setDailyTaskLimit" value="${s.dailyTaskLimit || 30}"></div>
+          <div class="form-group"><label>Minimum Withdraw (₹)</label><input type="number" id="setMinWithdraw" value="${s.minimumWithdraw || 30}"></div>
+          <div class="form-group"><label>Maximum Withdraw (₹)</label><input type="number" id="setMaxWithdraw" value="${s.maximumWithdraw || 5000}"></div>
+          <div class="form-group"><label>Referral Bonus (coins)</label><input type="number" id="setRefBonus" value="${s.referralBonus || 20}"></div>
+          <div class="form-group"><label>Task Cooldown (seconds)</label><input type="number" id="setTaskCooldown" value="${s.taskCooldownSeconds || 60}"></div>
+          <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>`;
+        $('#settingsFormContainer').innerHTML = html;
+        $('#saveSettingsBtn').addEventListener('click', saveSettings);
+      }
+      async function saveSettings() {
+        const newSettings = {
+          appStatus: $('#setAppStatus').value === '1',
+          adsEnabled: $('#setAdsEnabled').value === '1',
+          coinValue: { coins: parseInt($('#setCoinCoins').value) || 50, rupees: parseInt($('#setCoinRupees').value) || 1 },
+          dailyCoinLimit: parseInt($('#setDailyCoinLimit').value) || 50,
+          dailyTaskLimit: parseInt($('#setDailyTaskLimit').value) || 30,
+          minimumWithdraw: parseInt($('#setMinWithdraw').value) || 30,
+          maximumWithdraw: parseInt($('#setMaxWithdraw').value) || 5000,
+          referralBonus: parseInt($('#setRefBonus').value) || 20,
+          taskCooldownSeconds: parseInt($('#setTaskCooldown').value) || 60,
+          unlimitedTasks: settingsData.unlimitedTasks || false,
+          taskVerificationEnabled: settingsData.taskVerificationEnabled || true,
+          withdrawalSettings: settingsData.withdrawalSettings || { dailyWithdrawLimit:1, enabled:true, maxAmount:5000, minAmount:30 }
+        };
+        try {
+          await db.ref('settings').set(newSettings);
+          showToast('Settings updated!', 'success');
+        } catch(err) { showToast(err.message, 'error'); }
+      }
+    })();
+  </script>
+</body>
+</html>
